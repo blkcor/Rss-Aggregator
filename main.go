@@ -29,6 +29,7 @@ func main() {
 			AllowedMethods: []string{"POST", "GET", "PUT", "PATCH", "DELETE", "OPTIONS"},
 			AllowedHeaders: []string{"*"},
 			ExposedHeaders: []string{"*"},
+			MaxAge:         300,
 		}),
 	)
 	//http server
