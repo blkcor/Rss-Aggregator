@@ -1,13 +1,20 @@
 package main
 
 import (
+	"database/sql"
+	"github.com/blkcor/Rss-aggregator/internal/database"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 	"log"
 	"net/http"
 	"os"
 )
+
+type apiConfig struct {
+	DB *database.Queries
+}
 
 func main() {
 	//load the .env file
@@ -20,6 +27,22 @@ func main() {
 	if port == "" {
 		log.Fatalf("PORT is not found in the environment")
 	}
+
+	//database
+	dbURL := os.Getenv("DB_URL")
+	if dbURL == "" {
+		log.Fatalf("DB_URL is not found in the environment")
+	}
+	conn, err := sql.Open("postgres", dbURL)
+	if err != nil {
+		log.Fatalf("Fail to connect to database,err: %v", err)
+	}
+	//get database queries
+	queries := database.New(conn)
+	apiCfg := apiConfig{
+		DB: queries,
+	}
+
 	//router
 	router := chi.NewRouter()
 	//register handler
@@ -37,6 +60,7 @@ func main() {
 	v1Router := chi.NewRouter()
 	v1Router.Get("/ready", handlerReadiness)
 	v1Router.Get("/err", handlerError)
+	v1Router.Post("/users", apiCfg.handlerCreateUser)
 	router.Mount("/v1", v1Router)
 
 	//http server
