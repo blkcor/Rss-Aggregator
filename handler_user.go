@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/blkcor/Rss-aggregator/internal/auth"
 	"github.com/blkcor/Rss-aggregator/internal/database"
 	"github.com/google/uuid"
 	"net/http"
@@ -31,5 +32,20 @@ func (a *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) {
 		responseWithError(w, 401, fmt.Sprintf("Error creating user:%v", err))
 		return
 	}
-	responseWithJson(w, 200, user)
+	//convert db user to our define user
+	responseWithJson(w, 200, dbUserToUser(user))
+}
+
+func (a *apiConfig) handlerGetUser(w http.ResponseWriter, r *http.Request) {
+	apiKey, err := auth.GetApiKey(r.Header)
+	if err != nil {
+		responseWithError(w, 403, fmt.Sprintf("Auth err: %v", err))
+		return
+	}
+	user, err := a.DB.GetUserByApiKey(r.Context(), apiKey)
+	if err != nil {
+		responseWithError(w, 401, fmt.Sprintf("Error Getting User: %v", err))
+		return
+	}
+	responseWithJson(w, 200, dbUserToUser(user))
 }
