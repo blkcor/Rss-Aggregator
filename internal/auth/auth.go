@@ -9,10 +9,10 @@ import (
 /*
 GetApiKey function could extract ApiKey in the request header
 example like this:
-Authentication: ApiKey {insert your api key here}
+Authorization: ApiKey {insert your api key here}
 */
 func GetApiKey(header http.Header) (string, error) {
-	val := header.Get("Authentication")
+	val := header.Get("Authorization")
 	if val == "" {
 		return "", errors.New("no authentication info found")
 	}
