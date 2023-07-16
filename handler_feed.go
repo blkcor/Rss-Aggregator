@@ -34,10 +34,18 @@ func (a *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Request, us
 		responseWithError(w, 401, fmt.Sprintf("Error creating feed:%v", err))
 		return
 	}
-	//convert db user to our define user
 	responseWithJson(w, 200, dbFeedToFeed(feed))
 }
 
-func (a *apiConfig) handlerGetFeed(w http.ResponseWriter, r *http.Request, user database.User) {
-	responseWithJson(w, 200, dbUserToUser(user))
+func (a *apiConfig) handlerGetFeed(w http.ResponseWriter, r *http.Request) {
+	feeds, err := a.DB.GetFeeds(r.Context())
+	if err != nil {
+		responseWithError(w, 401, fmt.Sprintf("Error getting feeds:%v", err))
+		return
+	}
+	feedsResponse := make([]Feed, 0)
+	for _, feed := range feeds {
+		feedsResponse = append(feedsResponse, dbFeedToFeed(feed))
+	}
+	responseWithJson(w, 200, feedsResponse)
 }
