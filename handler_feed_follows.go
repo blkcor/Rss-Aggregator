@@ -46,3 +46,24 @@ func (a *apiConfig) handlerGetFeedFollows(w http.ResponseWriter, r *http.Request
 	}
 	responseWithJson(w, 200, feedFollowResponse)
 }
+
+func (a *apiConfig) handlerDeleteFeedFollows(w http.ResponseWriter, r *http.Request, user database.User) {
+	type parameter struct {
+		FeedID uuid.UUID
+	}
+	param := parameter{}
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&param)
+	if err != nil {
+		responseWithError(w, 400, fmt.Sprintf("Error parsing JSON:%v", err))
+		return
+	}
+	err = a.DB.DeleteFeedFollows(r.Context(), database.DeleteFeedFollowsParams{
+		UserID: user.ID,
+		FeedID: param.FeedID,
+	})
+	if err != nil {
+		responseWithError(w, 401, fmt.Sprintf("Error deleting feed_follows:%v", err))
+	}
+	responseWithJson(w, 200, "delete successfully!")
+}
