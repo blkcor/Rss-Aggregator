@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 type apiConfig struct {
@@ -42,7 +43,8 @@ func main() {
 	apiCfg := apiConfig{
 		DB: queries,
 	}
-
+	//start scraping the post
+	go startScraping(queries, 10, 10*time.Second)
 	//router
 	router := chi.NewRouter()
 	//register handler
@@ -70,6 +72,8 @@ func main() {
 	v1Router.Post("/feed_follows", apiCfg.middlewareAuth(apiCfg.handlerCreateFeedFollows))
 	v1Router.Get("/feed_follows", apiCfg.middlewareAuth(apiCfg.handlerGetFeedFollows))
 	v1Router.Delete("/feed_follows/{feedFollowID}", apiCfg.middlewareAuth(apiCfg.handlerDeleteFeedFollows))
+	//posts
+	v1Router.Get("/posts", apiCfg.middlewareAuth(apiCfg.handlerGetUserPosts))
 	router.Mount("/v1", v1Router)
 
 	//http server
