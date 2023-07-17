@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/blkcor/Rss-aggregator/internal/database"
+	"github.com/go-chi/chi"
 	"github.com/google/uuid"
 	"net/http"
 	"time"
@@ -48,19 +49,15 @@ func (a *apiConfig) handlerGetFeedFollows(w http.ResponseWriter, r *http.Request
 }
 
 func (a *apiConfig) handlerDeleteFeedFollows(w http.ResponseWriter, r *http.Request, user database.User) {
-	type parameter struct {
-		FeedID uuid.UUID
-	}
-	param := parameter{}
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&param)
+	feedFollowIDStr := chi.URLParam(r, "feedFollowID")
+	feedFollowID, err := uuid.Parse(feedFollowIDStr)
 	if err != nil {
-		responseWithError(w, 400, fmt.Sprintf("Error parsing JSON:%v", err))
+		responseWithError(w, 400, fmt.Sprintf("Error parsing URL parameters:%v", err))
 		return
 	}
 	err = a.DB.DeleteFeedFollows(r.Context(), database.DeleteFeedFollowsParams{
 		UserID: user.ID,
-		FeedID: param.FeedID,
+		ID:     feedFollowID,
 	})
 	if err != nil {
 		responseWithError(w, 401, fmt.Sprintf("Error deleting feed_follows:%v", err))
